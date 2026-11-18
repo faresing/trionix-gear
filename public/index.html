@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trionix Gear · Préstamo de equipos</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Trionix Gear</h1>
+      <p>Inventario y préstamo de equipos · Trionix Labs</p>
+    </div>
+    <div class="sesion">
+      <span id="estado-sesion" class="badge gris">Solo lectura</span>
+      <button id="btn-logout" class="btn btn-claro solo-admin" type="button">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <div id="toast" class="toast oculto" role="alert" aria-live="assertive"></div>
+
+  <main class="contenedor">
+    <!-- Login: las lecturas son públicas, escribir requiere sesión -->
+    <section id="login-card" class="card">
+      <h2>Iniciar sesión (administrador)</h2>
+      <p class="ayuda">Puedes consultar todo sin iniciar sesión. Para crear, editar, eliminar o registrar préstamos necesitas entrar.</p>
+      <form id="login-form" class="fila">
+        <input id="login-usuario" type="text" placeholder="Usuario" autocomplete="username" required>
+        <input id="login-password" type="password" placeholder="Contraseña" autocomplete="current-password" required>
+        <button class="btn btn-primario" type="submit">Entrar</button>
+      </form>
+    </section>
+
+    <nav class="tabs" aria-label="Secciones">
+      <button class="tab-btn activa" type="button" data-tab="inventario">Inventario</button>
+      <button class="tab-btn" type="button" data-tab="usuarios">Usuarios</button>
+      <button class="tab-btn" type="button" data-tab="prestamos">Préstamos</button>
+      <button class="tab-btn" type="button" data-tab="resumen">Resumen</button>
+    </nav>
+
+    <!-- INVENTARIO -->
+    <section id="tab-inventario" class="tab activa">
+      <div class="card solo-admin">
+        <h3>Registrar equipo</h3>
+        <form id="equipo-form" class="fila">
+          <input id="eq-codigo" type="text" placeholder="Código (EQ-0009)" required>
+          <input id="eq-nombre" type="text" placeholder="Nombre del equipo" required>
+          <select id="eq-categoria" required>
+            <option value="">Categoría…</option>
+            <option value="portatil">Portátil</option>
+            <option value="proyector">Proyector</option>
+            <option value="camara">Cámara</option>
+            <option value="audio">Audio</option>
+            <option value="redes">Redes</option>
+          </select>
+          <input id="eq-ubicacion" type="text" placeholder="Ubicación (opcional)">
+          <button class="btn btn-primario" type="submit">Guardar</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="barra">
+          <h3>Equipos</h3>
+          <div class="filtros">
+            <select id="filtro-eq-categoria" aria-label="Filtrar por categoría">
+              <option value="">Todas las categorías</option>
+              <option value="portatil">Portátil</option>
+              <option value="proyector">Proyector</option>
+              <option value="camara">Cámara</option>
+              <option value="audio">Audio</option>
+              <option value="redes">Redes</option>
+            </select>
+            <select id="filtro-eq-estado" aria-label="Filtrar por estado">
+              <option value="">Todos los estados</option>
+              <option value="disponible">Disponible</option>
+              <option value="prestado">Prestado</option>
+              <option value="mantenimiento">Mantenimiento</option>
+            </select>
+          </div>
+        </div>
+        <div class="tabla-wrap">
+          <table id="tabla-equipos">
+            <thead><tr><th>Código</th><th>Nombre</th><th>Categoría</th><th>Estado</th><th>Ubicación</th><th class="solo-admin">Acciones</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- USUARIOS -->
+    <section id="tab-usuarios" class="tab">
+      <div class="card solo-admin">
+        <h3>Registrar usuario</h3>
+        <form id="usuario-form" class="fila">
+          <input id="usr-nombre" type="text" placeholder="Nombre completo" required>
+          <input id="usr-documento" type="text" inputmode="numeric" placeholder="Documento (6–12 dígitos)" required>
+          <input id="usr-email" type="email" placeholder="Correo electrónico" required>
+          <select id="usr-tipo" required>
+            <option value="">Tipo…</option>
+            <option value="estudiante">Estudiante</option>
+            <option value="docente">Docente</option>
+            <option value="administrativo">Administrativo</option>
+          </select>
+          <button class="btn btn-primario" type="submit">Guardar</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>Usuarios</h3>
+        <div class="tabla-wrap">
+          <table id="tabla-usuarios">
+            <thead><tr><th>Nombre</th><th>Documento</th><th>Correo</th><th>Tipo</th><th>Activo</th><th class="solo-admin">Acciones</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRÉSTAMOS -->
+    <section id="tab-prestamos" class="tab">
+      <div class="card solo-admin">
+        <h3>Registrar préstamo</h3>
+        <form id="prestamo-form" class="fila">
+          <select id="pres-equipo" required><option value="">Equipo disponible…</option></select>
+          <select id="pres-usuario" required><option value="">Usuario activo…</option></select>
+          <input id="pres-fecha" type="date" required aria-label="Fecha límite">
+          <input id="pres-obs" type="text" maxlength="300" placeholder="Observaciones (opcional)">
+          <button class="btn btn-primario" type="submit">Prestar</button>
+        </form>
+        <p id="pres-ayuda" class="ayuda">Fecha límite: máximo 7 días (15 para docentes).</p>
+      </div>
+
+      <div class="card">
+        <div class="barra">
+          <h3>Préstamos</h3>
+          <div class="filtros">
+            <select id="filtro-prestamos" aria-label="Filtrar préstamos">
+              <option value="activo">Activos</option>
+              <option value="vencidos">Vencidos</option>
+              <option value="devuelto">Devueltos</option>
+              <option value="todos">Todos</option>
+            </select>
+          </div>
+        </div>
+        <div class="tabla-wrap">
+          <table id="tabla-prestamos">
+            <thead><tr><th>Equipo</th><th>Usuario</th><th>Préstamo</th><th>Límite</th><th>Estado</th><th class="solo-admin">Acciones</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESUMEN -->
+    <section id="tab-resumen" class="tab">
+      <div id="resumen-tarjetas" class="grid-resumen"></div>
+      <div class="card">
+        <h3>Equipos más prestados</h3>
+        <ol id="top-lista" class="top"></ol>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

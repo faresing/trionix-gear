@@ -1,0 +1,62 @@
+name: trionix-gear
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: trionix-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db # volumen con nombre: los datos sobreviven a "docker compose down"
+    ports:
+      - "127.0.0.1:27018:27017" # solo local (Compass); nunca hacia internet
+    networks: [trionix-net]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api:
+    build: .
+    container_name: trionix-api
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      # el host es el NOMBRE DEL SERVICIO, no localhost
+      MONGODB_URI: mongodb://mongo:27017/trionixgear
+    ports:
+      - "127.0.0.1:3001:3000" # acceso local para pruebas; el público entra por el túnel
+    networks: [trionix-net]
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  tunnel:
+    image: cloudflare/cloudflared:2024.8.3 # versión fija
+    container_name: trionix-tunnel
+    restart: unless-stopped
+    # Quick Tunnel: sin cuenta ni dominio, la URL https://*.trycloudflare.com sale en los logs
+    command: tunnel --no-autoupdate --url http://api:3000
+    networks: [trionix-net]
+    depends_on:
+      api:
+        condition: service_healthy
+
+networks:
+  trionix-net:
+
+volumes:
+  mongo-data:
